@@ -1,0 +1,1223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cafe Fazal — Admin Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --gold:    #C9A96E;
+  --gold-lt: #E8D5A3;
+  --dark:    #0D0B08;
+  --dark2:   #141210;
+  --dark3:   #1E1B16;
+  --dark4:   #252018;
+  --muted:   #7A7060;
+  --cream:   #FAF7F2;
+  --green:   #4ade80;
+  --red:     #f87171;
+  --blue:    #60a5fa;
+  --amber:   #fbbf24;
+  --border:  rgba(201,169,110,0.13);
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+html{font-size:16px;}
+body{background:var(--dark);color:var(--cream);font-family:'DM Sans',sans-serif;font-weight:300;min-height:100vh;}
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-thumb{background:var(--gold);border-radius:2px;}
+
+/* ── LOGIN SCREEN ── */
+#loginScreen{
+  position:fixed;inset:0;z-index:9999;
+  background:var(--dark);
+  display:flex;align-items:center;justify-content:center;
+  flex-direction:column;
+}
+#loginScreen.hidden{display:none;}
+.login-box{
+  background:var(--dark3);border:1px solid var(--border);
+  padding:3rem 2.5rem;width:100%;max-width:400px;
+  text-align:center;animation:fadeUp .4s ease;
+}
+.login-logo{font-family:'Cormorant Garamond',serif;font-size:2rem;color:var(--gold);letter-spacing:.15em;margin-bottom:.3rem;}
+.login-sub{font-size:.6rem;letter-spacing:.35em;text-transform:uppercase;color:var(--muted);margin-bottom:2rem;}
+.login-label{font-size:.6rem;letter-spacing:.25em;text-transform:uppercase;color:var(--gold);display:block;text-align:left;margin-bottom:.5rem;}
+.login-input{
+  width:100%;background:rgba(255,255,255,.04);border:1px solid rgba(201,169,110,.2);
+  color:var(--cream);padding:.9rem 1rem;font-family:'DM Sans',sans-serif;font-size:.9rem;
+  outline:none;transition:border-color .25s;margin-bottom:1.2rem;
+}
+.login-input:focus{border-color:var(--gold);}
+.login-btn{
+  width:100%;background:var(--gold);color:var(--dark);border:none;
+  padding:1rem;font-family:'DM Sans',sans-serif;font-size:.7rem;
+  letter-spacing:.2em;text-transform:uppercase;cursor:pointer;transition:background .3s;
+}
+.login-btn:hover{background:var(--gold-lt);}
+.login-error{color:var(--red);font-size:.78rem;margin-top:.8rem;display:none;}
+.login-hint{font-size:.68rem;color:var(--muted);margin-top:1.2rem;}
+.login-hint span{color:var(--gold);}
+
+/* ── LAYOUT ── */
+#appScreen{display:none;}
+#appScreen.visible{display:block;}
+.layout{display:grid;grid-template-columns:260px 1fr;min-height:100vh;}
+
+/* ── SIDEBAR ── */
+.sidebar{
+  background:var(--dark2);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;
+  position:sticky;top:0;height:100vh;overflow-y:auto;
+}
+.sb-brand{padding:2rem 1.8rem 1.5rem;border-bottom:1px solid var(--border);}
+.sb-brand-name{font-family:'Cormorant Garamond',serif;font-size:1.7rem;color:var(--gold);letter-spacing:.12em;}
+.sb-brand-sub{font-size:.6rem;letter-spacing:.35em;text-transform:uppercase;color:var(--muted);margin-top:3px;}
+.sb-badge{display:inline-block;margin-top:.7rem;background:rgba(201,169,110,.1);border:1px solid var(--border);padding:.2rem .7rem;font-size:.58rem;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);}
+.sb-nav{padding:1.5rem 0;flex:1;}
+.sb-section-label{font-size:.52rem;letter-spacing:.35em;text-transform:uppercase;color:var(--muted);padding:.3rem 1.8rem .5rem;display:block;}
+.sb-link{
+  display:flex;align-items:center;gap:.85rem;
+  padding:.75rem 1.8rem;font-size:.82rem;
+  color:rgba(250,247,242,.55);cursor:pointer;
+  transition:all .2s;border-left:2px solid transparent;
+  text-decoration:none;background:none;border-right:none;width:100%;
+  font-family:'DM Sans',sans-serif;
+}
+.sb-link:hover{color:var(--gold);background:rgba(201,169,110,.04);}
+.sb-link.active{color:var(--gold);border-left-color:var(--gold);background:rgba(201,169,110,.07);}
+.sb-link .ico{font-size:1rem;width:20px;text-align:center;}
+.sb-link .badge-count{margin-left:auto;background:var(--gold);color:var(--dark);font-size:.58rem;font-weight:600;padding:.1rem .45rem;border-radius:20px;min-width:20px;text-align:center;}
+.sb-footer{padding:1.2rem 1.8rem;border-top:1px solid var(--border);font-size:.7rem;color:var(--muted);}
+.sb-footer a{color:var(--gold);text-decoration:none;}
+
+/* ── MAIN ── */
+.main{background:var(--dark);display:flex;flex-direction:column;}
+
+/* ── TOPBAR ── */
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:1.2rem 2.5rem;border-bottom:1px solid var(--border);
+  background:var(--dark2);position:sticky;top:0;z-index:100;
+}
+.topbar-title{font-family:'Cormorant Garamond',serif;font-size:1.5rem;color:var(--cream);}
+.topbar-title span{color:var(--gold);font-style:italic;}
+.topbar-right{display:flex;align-items:center;gap:1rem;}
+.live-dot{display:flex;align-items:center;gap:.5rem;font-size:.72rem;color:var(--green);}
+.live-dot::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--green);animation:blink 1.5s ease infinite;}
+.refresh-btn{background:rgba(201,169,110,.1);border:1px solid var(--border);color:var(--gold);padding:.45rem 1rem;font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .25s;}
+.refresh-btn:hover{background:rgba(201,169,110,.2);}
+.auto-refresh-info{font-size:.62rem;color:var(--muted);}
+.logout-btn{background:transparent;border:1px solid rgba(248,113,113,.3);color:var(--red);padding:.45rem 1rem;font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .25s;}
+.logout-btn:hover{background:rgba(248,113,113,.1);}
+
+/* ── CONTENT ── */
+.content{padding:2rem 2.5rem;flex:1;}
+
+/* ── TAB PANELS ── */
+.panel{display:none;}
+.panel.active{display:block;}
+
+/* ── STAT CARDS ── */
+.stats-row{display:grid;grid-template-columns:repeat(6,1fr);gap:1rem;margin-bottom:2rem;}
+.stat-card{background:var(--dark3);border:1px solid var(--border);padding:1.4rem 1.5rem;position:relative;overflow:hidden;transition:border-color .3s;cursor:pointer;}
+.stat-card:hover{border-color:rgba(201,169,110,.3);}
+.stat-card::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--gold);transform:scaleX(0);transition:transform .3s;}
+.stat-card:hover::after{transform:scaleX(1);}
+.stat-label{font-size:.6rem;letter-spacing:.25em;text-transform:uppercase;color:var(--muted);margin-bottom:.5rem;}
+.stat-num{font-family:'Cormorant Garamond',serif;font-size:2.5rem;color:var(--gold);line-height:1;}
+.stat-card.green .stat-num{color:var(--green);}
+.stat-card.red   .stat-num{color:var(--red);}
+.stat-card.blue  .stat-num{color:var(--blue);}
+.stat-card.amber .stat-num{color:var(--amber);}
+.stat-sub{font-size:.65rem;color:var(--muted);margin-top:.3rem;}
+
+/* ── FILTERS BAR ── */
+.filters-bar{display:flex;align-items:center;gap:1rem;flex-wrap:wrap;margin-bottom:1.5rem;padding:1rem 1.5rem;background:var(--dark3);border:1px solid var(--border);}
+.filter-group{display:flex;align-items:center;gap:.5rem;}
+.filter-label{font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);}
+.filter-pill{background:transparent;border:1px solid rgba(201,169,110,.2);color:rgba(201,169,110,.5);padding:.3rem .9rem;font-size:.65rem;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .25s;}
+.filter-pill:hover,.filter-pill.on{border-color:var(--gold);color:var(--gold);}
+.filter-pill.on{background:rgba(201,169,110,.1);}
+.filter-pill.green.on{border-color:var(--green);color:var(--green);background:rgba(74,222,128,.08);}
+.filter-pill.red.on{border-color:var(--red);color:var(--red);background:rgba(248,113,113,.08);}
+.date-input{background:rgba(255,255,255,.04);border:1px solid rgba(201,169,110,.2);color:var(--cream);padding:.3rem .8rem;font-family:'DM Sans',sans-serif;font-size:.75rem;outline:none;transition:border-color .25s;color-scheme:dark;}
+.date-input:focus{border-color:var(--gold);}
+.search-input{background:rgba(255,255,255,.04);border:1px solid rgba(201,169,110,.2);color:var(--cream);padding:.3rem 1rem;font-family:'DM Sans',sans-serif;font-size:.78rem;outline:none;transition:border-color .25s;flex:1;min-width:180px;}
+.search-input:focus{border-color:var(--gold);}
+.search-input::placeholder{color:var(--muted);}
+.filter-right{margin-left:auto;font-size:.72rem;color:var(--muted);}
+
+/* ── TABLE ── */
+.table-wrap{background:var(--dark3);border:1px solid var(--border);overflow:hidden;}
+.table-head{display:grid;grid-template-columns:60px 1.8fr 1.2fr 1fr 1fr 1fr 1fr 180px;padding:.8rem 1.2rem;border-bottom:1px solid var(--border);background:rgba(201,169,110,.04);}
+.th{font-size:.55rem;letter-spacing:.25em;text-transform:uppercase;color:var(--muted);}
+.table-body{max-height:calc(100vh - 420px);overflow-y:auto;}
+.row{display:grid;grid-template-columns:60px 1.8fr 1.2fr 1fr 1fr 1fr 1fr 180px;padding:.95rem 1.2rem;border-bottom:1px solid rgba(201,169,110,.06);align-items:center;transition:background .2s;}
+.row:hover{background:rgba(201,169,110,.03);}
+.row:last-child{border-bottom:none;}
+.row-id{font-size:.72rem;color:var(--muted);}
+.row-name strong{font-size:.88rem;color:var(--cream);font-weight:500;display:block;}
+.row-name span{font-size:.72rem;color:var(--muted);}
+.row-contact{font-size:.75rem;color:var(--muted);line-height:1.7;}
+.row-contact a{color:var(--gold);text-decoration:none;}
+.row-date,.row-time,.row-guests{font-size:.8rem;color:rgba(250,247,242,.6);}
+.status-badge{display:inline-flex;align-items:center;gap:.35rem;padding:.22rem .7rem;font-size:.58rem;letter-spacing:.12em;text-transform:uppercase;border:1px solid;}
+.status-badge::before{content:'';width:5px;height:5px;border-radius:50%;background:currentColor;}
+.status-badge.pending{border-color:rgba(201,169,110,.4);color:var(--gold);background:rgba(201,169,110,.06);}
+.status-badge.accepted{border-color:rgba(74,222,128,.4);color:var(--green);background:rgba(74,222,128,.06);}
+.status-badge.rejected{border-color:rgba(248,113,113,.4);color:var(--red);background:rgba(248,113,113,.06);}
+.status-badge.cancelled{border-color:rgba(148,163,184,.3);color:#94a3b8;background:rgba(148,163,184,.06);}
+.actions{display:flex;gap:.45rem;flex-wrap:wrap;}
+.btn-accept,.btn-reject,.btn-delete,.btn-wa,.btn-note,.btn-promote{border:1px solid;padding:.3rem .65rem;font-size:.6rem;cursor:pointer;font-family:'DM Sans',sans-serif;letter-spacing:.08em;text-transform:uppercase;transition:all .25s;white-space:nowrap;}
+.btn-accept{border-color:rgba(74,222,128,.5);color:var(--green);background:transparent;}
+.btn-accept:hover{background:rgba(74,222,128,.15);}
+.btn-reject{border-color:rgba(248,113,113,.5);color:var(--red);background:transparent;}
+.btn-reject:hover{background:rgba(248,113,113,.15);}
+.btn-delete{border-color:rgba(255,255,255,.1);color:var(--muted);background:transparent;}
+.btn-delete:hover{border-color:var(--red);color:var(--red);}
+.btn-wa{border-color:rgba(37,211,102,.4);color:#25d366;background:transparent;}
+.btn-wa:hover{background:rgba(37,211,102,.1);}
+.btn-promote{border-color:rgba(96,165,250,.4);color:var(--blue);background:transparent;}
+.btn-promote:hover{background:rgba(96,165,250,.1);}
+
+/* ── SECTION HEADER ── */
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;}
+.section-title{font-family:'Cormorant Garamond',serif;font-size:1.5rem;color:var(--cream);}
+.section-title span{color:var(--gold);font-style:italic;}
+
+/* ── WAITLIST TABLE ── */
+.wl-head{display:grid;grid-template-columns:60px 1.5fr 1fr 1fr 1fr 1fr 160px;padding:.8rem 1.2rem;border-bottom:1px solid var(--border);background:rgba(201,169,110,.04);}
+.wl-row{display:grid;grid-template-columns:60px 1.5fr 1fr 1fr 1fr 1fr 160px;padding:.9rem 1.2rem;border-bottom:1px solid rgba(201,169,110,.06);align-items:center;transition:background .2s;}
+.wl-row:hover{background:rgba(201,169,110,.03);}
+
+/* ── BLACKOUT PANEL ── */
+.blackout-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-top:1rem;}
+.blackout-form-box{background:var(--dark3);border:1px solid var(--border);padding:1.8rem;}
+.blackout-list-box{background:var(--dark3);border:1px solid var(--border);padding:1.8rem;}
+.panel-sub-title{font-size:.6rem;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);margin-bottom:1.2rem;display:block;}
+.f-label{font-size:.58rem;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);margin-bottom:.4rem;display:block;}
+.f-input{width:100%;background:rgba(255,255,255,.04);border:1px solid rgba(201,169,110,.2);color:var(--cream);padding:.75rem .9rem;font-family:'DM Sans',sans-serif;font-size:.82rem;outline:none;transition:border-color .25s;margin-bottom:1rem;color-scheme:dark;}
+.f-input:focus{border-color:var(--gold);}
+.f-input::placeholder{color:var(--muted);}
+.btn-add-blackout{background:var(--gold);color:var(--dark);border:none;padding:.75rem 1.5rem;font-family:'DM Sans',sans-serif;font-size:.68rem;letter-spacing:.18em;text-transform:uppercase;cursor:pointer;transition:background .3s;width:100%;}
+.btn-add-blackout:hover{background:var(--gold-lt);}
+.blackout-item{display:flex;align-items:center;justify-content:space-between;padding:.75rem 1rem;border:1px solid rgba(201,169,110,.1);margin-bottom:.6rem;background:rgba(201,169,110,.03);}
+.blackout-date-text{font-size:.85rem;color:var(--cream);}
+.blackout-reason-text{font-size:.72rem;color:var(--muted);margin-top:.2rem;}
+.btn-remove-blackout{background:transparent;border:1px solid rgba(248,113,113,.3);color:var(--red);padding:.3rem .7rem;font-size:.6rem;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .25s;}
+.btn-remove-blackout:hover{background:rgba(248,113,113,.1);}
+
+
+/* ── EMPTY STATE ── */
+.empty-state{text-align:center;padding:5rem 2rem;color:var(--muted);}
+.empty-state .e-ico{font-size:3rem;opacity:.3;margin-bottom:1rem;}
+.empty-state p{font-size:.88rem;}
+
+/* ── MODAL ── */
+.modal-overlay{display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.85);backdrop-filter:blur(8px);align-items:center;justify-content:center;}
+.modal-overlay.open{display:flex;}
+.modal-box{background:var(--dark3);border:1px solid var(--border);padding:2.5rem;max-width:480px;width:90%;animation:fadeUp .25s ease;}
+.modal-title{font-family:'Cormorant Garamond',serif;font-size:1.6rem;color:var(--gold);margin-bottom:1.2rem;}
+.modal-info{margin-bottom:1.5rem;}
+.modal-info-row{display:flex;gap:.5rem;margin-bottom:.4rem;font-size:.8rem;}
+.modal-info-row .lbl{color:var(--muted);min-width:90px;}
+.modal-info-row .val{color:var(--cream);}
+.modal-note-label{font-size:.58rem;letter-spacing:.25em;text-transform:uppercase;color:var(--gold);margin-bottom:.5rem;display:block;}
+.modal-textarea{width:100%;background:rgba(255,255,255,.04);border:1px solid rgba(201,169,110,.2);color:var(--cream);padding:.75rem 1rem;font-family:'DM Sans',sans-serif;font-size:.83rem;outline:none;resize:vertical;min-height:80px;transition:border-color .25s;}
+.modal-textarea:focus{border-color:var(--gold);}
+.modal-footer{display:flex;gap:.75rem;justify-content:flex-end;margin-top:1.2rem;}
+.modal-cancel{background:none;border:1px solid var(--border);color:var(--muted);padding:.65rem 1.4rem;font-family:'DM Sans',sans-serif;font-size:.7rem;cursor:pointer;transition:all .2s;}
+.modal-cancel:hover{border-color:var(--gold);color:var(--gold);}
+.modal-confirm{border:none;padding:.65rem 1.8rem;font-family:'DM Sans',sans-serif;font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;transition:all .25s;}
+.modal-confirm.accept{background:var(--green);color:var(--dark);}
+.modal-confirm.accept:hover{background:#22c55e;}
+.modal-confirm.reject{background:var(--red);color:var(--dark);}
+.modal-confirm.reject:hover{background:#ef4444;}
+
+/* ── TOAST ── */
+.toast-container{position:fixed;bottom:2rem;right:2rem;z-index:2000;display:flex;flex-direction:column;gap:.6rem;}
+.toast{background:var(--dark3);border:1px solid var(--border);padding:.9rem 1.4rem;font-size:.78rem;min-width:280px;animation:slideIn .3s ease;display:flex;align-items:center;gap:.7rem;}
+.toast.success{border-left:3px solid var(--green);}
+.toast.error{border-left:3px solid var(--red);}
+.toast.info{border-left:3px solid var(--gold);}
+
+/* ── WA PREVIEW ── */
+.wa-preview{background:var(--dark4);border:1px solid rgba(37,211,102,.2);padding:1rem 1.2rem;margin:1rem 0 0;font-size:.78rem;color:rgba(250,247,242,.6);line-height:1.7;position:relative;}
+.wa-preview-label{position:absolute;top:-9px;left:.8rem;background:var(--dark3);padding:0 .4rem;font-size:.55rem;letter-spacing:.2em;text-transform:uppercase;color:#25d366;}
+
+/* ── AUTO REFRESH COUNTDOWN ── */
+.refresh-ring{display:inline-flex;align-items:center;gap:.4rem;font-size:.62rem;color:var(--muted);}
+
+/* ── RESPONSIVE ── */
+@media(max-width:1200px){.stats-row{grid-template-columns:repeat(3,1fr);}}
+@media(max-width:1100px){.table-head,.row{grid-template-columns:50px 1.5fr 1.2fr 1fr 1fr 160px;}.row-time{display:none;}}
+@media(max-width:768px){.layout{grid-template-columns:1fr;}.sidebar{position:relative;height:auto;}.stats-row{grid-template-columns:1fr 1fr;}.blackout-grid{grid-template-columns:1fr;}}
+
+/* ── NEWSLETTER PANEL ── */
+.nl-stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.5rem;}
+.nl-stat{background:var(--dark3);border:1px solid var(--border);padding:1.2rem 1.5rem;}
+.nl-stat-label{font-size:.58rem;letter-spacing:.25em;text-transform:uppercase;color:var(--muted);margin-bottom:.4rem;}
+.nl-stat-num{font-family:'Cormorant Garamond',serif;font-size:2rem;color:var(--gold);}
+.nl-toolbar{display:flex;align-items:center;gap:1rem;margin-bottom:1.2rem;flex-wrap:wrap;}
+.nl-search{background:rgba(255,255,255,.04);border:1px solid rgba(201,169,110,.2);color:var(--cream);padding:.5rem 1rem;font-family:'DM Sans',sans-serif;font-size:.78rem;outline:none;transition:border-color .25s;flex:1;min-width:200px;}
+.nl-search:focus{border-color:var(--gold);}
+.nl-search::placeholder{color:var(--muted);}
+.btn-export{background:rgba(201,169,110,.1);border:1px solid var(--border);color:var(--gold);padding:.5rem 1.1rem;font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .25s;white-space:nowrap;}
+.btn-export:hover{background:rgba(201,169,110,.2);}
+.nl-table-wrap{background:var(--dark3);border:1px solid var(--border);overflow:hidden;}
+.nl-table-head{display:grid;grid-template-columns:60px 1.5fr 2fr 1.5fr 80px;padding:.8rem 1.2rem;border-bottom:1px solid var(--border);background:rgba(201,169,110,.04);}
+.nl-row{display:grid;grid-template-columns:60px 1.5fr 2fr 1.5fr 80px;padding:.85rem 1.2rem;border-bottom:1px solid rgba(201,169,110,.06);align-items:center;transition:background .2s;}
+.nl-row:hover{background:rgba(201,169,110,.03);}
+.nl-row:last-child{border-bottom:none;}
+.nl-email{font-size:.82rem;color:var(--cream);}
+.nl-name{font-size:.8rem;color:var(--muted);}
+.nl-date{font-size:.72rem;color:var(--muted);}
+.btn-unsub{background:transparent;border:1px solid rgba(248,113,113,.3);color:var(--red);padding:.28rem .7rem;font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .25s;}
+.btn-unsub:hover{background:rgba(248,113,113,.1);}
+
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+@keyframes slideIn{from{opacity:0;transform:translateX(30px)}to{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+
+<!-- ══ LOGIN SCREEN ══ -->
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="login-logo">CAFE FAZAL</div>
+    <div class="login-sub">Admin Dashboard · Secure Access</div>
+    <label class="login-label" for="loginPass">Password</label>
+    <input class="login-input" type="password" id="loginPass" placeholder="Enter admin password" autocomplete="current-password">
+    <button class="login-btn" onclick="doLogin()">🔐 Sign In</button>
+    <div class="login-error" id="loginError">⚠ Incorrect password. Please try again.</div>
+    <div class="login-hint">Default password: <span>cafefazal2024</span><br>Set <code>ADMIN_PASSWORD</code> env var to change it.</div>
+  </div>
+</div>
+
+<!-- ══ APP SCREEN ══ -->
+<div id="appScreen">
+<div class="layout">
+
+  <!-- ══ SIDEBAR ══ -->
+  <aside class="sidebar">
+    <div class="sb-brand">
+      <div class="sb-brand-name">CAFE FAZAL</div>
+      <div class="sb-brand-sub">Admin Dashboard</div>
+      <div class="sb-badge">Owner Panel</div>
+    </div>
+    <nav class="sb-nav">
+      <span class="sb-section-label">Reservations</span>
+      <button class="sb-link active" onclick="showPanel('reservations'); filterStatus('all', this)">
+        <span class="ico">📋</span> All Reservations
+        <span class="badge-count" id="sb-count-all">0</span>
+      </button>
+      <button class="sb-link" onclick="showPanel('reservations'); filterStatus('pending', this)">
+        <span class="ico">⏳</span> Pending
+        <span class="badge-count" id="sb-count-pending" style="background:var(--gold)">0</span>
+      </button>
+      <button class="sb-link" onclick="showPanel('reservations'); filterStatus('accepted', this)">
+        <span class="ico">✅</span> Accepted
+        <span class="badge-count" id="sb-count-accepted" style="background:var(--green)">0</span>
+      </button>
+      <button class="sb-link" onclick="showPanel('reservations'); filterStatus('rejected', this)">
+        <span class="ico">❌</span> Rejected
+        <span class="badge-count" id="sb-count-rejected" style="background:var(--red)">0</span>
+      </button>
+
+      <span class="sb-section-label" style="margin-top:1.5rem">Tools</span>
+      <button class="sb-link" onclick="showPanel('waitlist')">
+        <span class="ico">⏸</span> Waitlist
+        <span class="badge-count" id="sb-count-waitlist" style="background:var(--blue)">0</span>
+      </button>
+      <button class="sb-link" onclick="showPanel('blackout')">
+        <span class="ico">🚫</span> Blackout Dates
+      </button>
+      <button class="sb-link" onclick="showPanel('newsletter')">
+        <span class="ico">📧</span> Newsletter
+        <span class="badge-count" id="sb-count-newsletter" style="background:var(--blue)">0</span>
+      </button>
+
+      <span class="sb-section-label" style="margin-top:1.5rem">Quick Actions</span>
+      <a class="sb-link" href="tel:+919920599891"><span class="ico">📞</span> Call Restaurant</a>
+      <a class="sb-link" href="https://wa.me/919920599891" target="_blank"><span class="ico">💬</span> WhatsApp</a>
+    </nav>
+    <div class="sb-footer">
+      Connected to <span style="color:var(--gold)">localhost:5000</span><br>
+      <a href="#" onclick="doLogout()">🔓 Logout</a>
+    </div>
+  </aside>
+
+  <!-- ══ MAIN ══ -->
+  <main class="main">
+
+    <!-- Topbar -->
+    <div class="topbar">
+      <div class="topbar-title" id="topbarTitle">Reservation <span>Manager</span></div>
+      <div class="topbar-right">
+        <span class="live-dot" id="serverStatus">Server Connected</span>
+        <span class="auto-refresh-info" id="refreshCountdown"></span>
+        <button class="refresh-btn" onclick="loadAll()">↻ Refresh</button>
+        <button class="logout-btn" onclick="doLogout()">Logout</button>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="content">
+
+      <!-- ── STAT CARDS ── -->
+      <div class="stats-row">
+        <div class="stat-card" onclick="showPanel('reservations');filterStatus('all',document.getElementById('fp-all'))">
+          <div class="stat-label">Total</div>
+          <div class="stat-num" id="stat-total">–</div>
+          <div class="stat-sub">All reservations</div>
+        </div>
+        <div class="stat-card blue" onclick="showPanel('reservations');filterStatus('all',document.getElementById('fp-all'))">
+          <div class="stat-label">Today</div>
+          <div class="stat-num" id="stat-today">–</div>
+          <div class="stat-sub" id="stat-today-date">–</div>
+        </div>
+        <div class="stat-card" onclick="showPanel('reservations');filterStatus('pending',document.getElementById('fp-pending'))">
+          <div class="stat-label">Pending</div>
+          <div class="stat-num" id="stat-pending">–</div>
+          <div class="stat-sub">Needs action</div>
+        </div>
+        <div class="stat-card green" onclick="showPanel('reservations');filterStatus('accepted',document.getElementById('fp-accepted'))">
+          <div class="stat-label">Accepted</div>
+          <div class="stat-num" id="stat-accepted">–</div>
+          <div class="stat-sub">Confirmed</div>
+        </div>
+        <div class="stat-card red" onclick="showPanel('reservations');filterStatus('rejected',document.getElementById('fp-rejected'))">
+          <div class="stat-label">Rejected</div>
+          <div class="stat-num" id="stat-rejected">–</div>
+          <div class="stat-sub">Declined</div>
+        </div>
+        <div class="stat-card amber" onclick="showPanel('waitlist')">
+          <div class="stat-label">Waitlist</div>
+          <div class="stat-num" id="stat-waitlist">–</div>
+          <div class="stat-sub">Waiting</div>
+        </div>
+      </div>
+
+      <!-- ══ PANEL: RESERVATIONS ══ -->
+      <div class="panel active" id="panel-reservations">
+        <!-- Filters -->
+        <div class="filters-bar">
+          <div class="filter-group">
+            <span class="filter-label">Status:</span>
+            <button class="filter-pill on" id="fp-all"      onclick="filterStatus('all',this)">All</button>
+            <button class="filter-pill"   id="fp-pending"   onclick="filterStatus('pending',this)">⏳ Pending</button>
+            <button class="filter-pill green" id="fp-accepted" onclick="filterStatus('accepted',this)">✅ Accepted</button>
+            <button class="filter-pill red"   id="fp-rejected" onclick="filterStatus('rejected',this)">❌ Rejected</button>
+          </div>
+          <div class="filter-group">
+            <span class="filter-label">Date:</span>
+            <input type="date" class="date-input" id="dateFilter" onchange="loadAll()">
+          </div>
+          <input type="text" class="search-input" id="searchBox" placeholder="🔍  Search by name, phone, ID, occasion…" oninput="doLocalSearch()">
+          <button class="refresh-btn" style="white-space:nowrap" onclick="clearSearch()">✕ Clear</button>
+          <span class="filter-right" id="rowCount">Loading…</span>
+        </div>
+
+        <!-- Table -->
+        <div class="table-wrap">
+          <div class="table-head">
+            <div class="th">#</div>
+            <div class="th">Guest</div>
+            <div class="th">Contact</div>
+            <div class="th">Date</div>
+            <div class="th">Time</div>
+            <div class="th">Guests</div>
+            <div class="th">Status</div>
+            <div class="th">Actions</div>
+          </div>
+          <div class="table-body" id="tableBody">
+            <div class="empty-state"><div class="e-ico">📋</div><p>Loading reservations…</p></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ PANEL: WAITLIST ══ -->
+      <div class="panel" id="panel-waitlist">
+        <div class="section-header">
+          <div class="section-title">Waitlist <span>Queue</span></div>
+          <button class="refresh-btn" onclick="loadWaitlist()">↻ Refresh</button>
+        </div>
+        <p style="font-size:.82rem;color:var(--muted);margin-bottom:1.5rem;line-height:1.8;">
+          Guests are added here when they try to book a <strong style="color:var(--gold)">blacked-out date</strong> or when you manually add them.
+          Promote a guest to move them into the main reservation queue.
+        </p>
+        <div class="table-wrap">
+          <div class="wl-head">
+            <div class="th">#</div>
+            <div class="th">Guest</div>
+            <div class="th">Phone</div>
+            <div class="th">Date</div>
+            <div class="th">Time</div>
+            <div class="th">Guests</div>
+            <div class="th">Actions</div>
+          </div>
+          <div class="table-body" id="waitlistBody">
+            <div class="empty-state"><div class="e-ico">⏸</div><p>No one on the waitlist.</p></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ PANEL: BLACKOUT DATES ══ -->
+      <div class="panel" id="panel-blackout">
+        <div class="section-header">
+          <div class="section-title">Blackout <span>Dates</span></div>
+        </div>
+        <p style="font-size:.82rem;color:var(--muted);margin-bottom:1.5rem;line-height:1.8;">
+          Blocked dates prevent new reservations. Guests who try to book a blacked-out date are automatically added to the <strong style="color:var(--gold)">Waitlist</strong> instead.
+        </p>
+        <div class="blackout-grid">
+          <div class="blackout-form-box">
+            <span class="panel-sub-title">Add New Blackout Date</span>
+            <label class="f-label" for="boDate">Date</label>
+            <input class="f-input" type="date" id="boDate">
+            <label class="f-label" for="boReason">Reason (shown to guests)</label>
+            <input class="f-input" type="text" id="boReason" placeholder="e.g. Private event, Public holiday…">
+            <button class="btn-add-blackout" onclick="addBlackout()">🚫 Block This Date</button>
+          </div>
+          <div class="blackout-list-box">
+            <span class="panel-sub-title">Currently Blocked Dates</span>
+            <div id="blackoutList">
+              <p style="color:var(--muted);font-size:.82rem;">Loading…</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- ══ PANEL: NEWSLETTER ══ -->
+      <div class="panel" id="panel-newsletter">
+        <div class="section-header">
+          <div class="section-title">Newsletter <span>Subscribers</span></div>
+          <button class="btn-export" onclick="exportCSV()">⬇ Export CSV</button>
+        </div>
+        <p style="font-size:.82rem;color:var(--muted);margin-bottom:1.5rem;line-height:1.8;">
+          Everyone who subscribed via the <strong style="color:var(--gold)">Stay in the Loop</strong> section on your website.
+        </p>
+
+        <!-- Mini stats -->
+        <div class="nl-stats-row">
+          <div class="nl-stat">
+            <div class="nl-stat-label">Total Subscribers</div>
+            <div class="nl-stat-num" id="nl-stat-total">–</div>
+          </div>
+          <div class="nl-stat">
+            <div class="nl-stat-label">This Month</div>
+            <div class="nl-stat-num" id="nl-stat-month">–</div>
+          </div>
+          <div class="nl-stat">
+            <div class="nl-stat-label">This Week</div>
+            <div class="nl-stat-num" id="nl-stat-week">–</div>
+          </div>
+        </div>
+
+        <!-- Search + table -->
+        <div class="nl-toolbar">
+          <input type="text" class="nl-search" id="nlSearchBox" placeholder="🔍  Search by name or email…" oninput="renderSubscribers()">
+          <span style="font-size:.72rem;color:var(--muted)" id="nl-row-count">–</span>
+        </div>
+
+        <div class="nl-table-wrap">
+          <div class="nl-table-head">
+            <div class="th">#</div>
+            <div class="th">Name</div>
+            <div class="th">Email</div>
+            <div class="th">Subscribed</div>
+            <div class="th">Action</div>
+          </div>
+          <div class="table-body" id="nlTableBody" style="max-height:calc(100vh - 480px)">
+            <div class="empty-state"><div class="e-ico">📧</div><p>Loading subscribers…</p></div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </main>
+</div><!-- /layout -->
+</div><!-- /appScreen -->
+
+<!-- ══ ACCEPT MODAL ══ -->
+<div class="modal-overlay" id="acceptModal">
+  <div class="modal-box">
+    <div class="modal-title">✅ Accept Reservation</div>
+    <div class="modal-info" id="acceptModalInfo"></div>
+    <span class="modal-note-label">Message to guest (optional)</span>
+    <textarea class="modal-textarea" id="acceptNote" placeholder="e.g. Your table is confirmed! We look forward to welcoming you."></textarea>
+    <div class="wa-preview"><span class="wa-preview-label">📲 WhatsApp preview</span><span id="acceptWaText">…</span></div>
+    <div class="modal-footer">
+      <button class="modal-cancel" onclick="closeModals()">Cancel</button>
+      <button class="modal-confirm accept" onclick="confirmAccept()">✅ Confirm & WhatsApp</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ REJECT MODAL ══ -->
+<div class="modal-overlay" id="rejectModal">
+  <div class="modal-box">
+    <div class="modal-title">❌ Reject Reservation</div>
+    <div class="modal-info" id="rejectModalInfo"></div>
+    <span class="modal-note-label">Reason for rejection (optional)</span>
+    <textarea class="modal-textarea" id="rejectNote" placeholder="e.g. Sorry, we are fully booked on this date."></textarea>
+    <div class="wa-preview"><span class="wa-preview-label">📲 WhatsApp preview</span><span id="rejectWaText">…</span></div>
+    <div class="modal-footer">
+      <button class="modal-cancel" onclick="closeModals()">Cancel</button>
+      <button class="modal-confirm reject" onclick="confirmReject()">❌ Confirm & WhatsApp</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ TOAST CONTAINER ══ -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+"use strict";
+
+const API = 'http://localhost:5000';
+let allRows      = [];
+let currentStatus = 'all';
+let pendingId    = null;
+let autoRefreshTimer = null;
+let countdownTimer   = null;
+let countdownSecs    = 30;
+
+// ─────────────────────────────────────────
+//  AUTH
+// ─────────────────────────────────────────
+function getToken() { return sessionStorage.getItem('cf_admin_token'); }
+
+async function doLogin() {
+  const pass = document.getElementById('loginPass').value.trim();
+  const err  = document.getElementById('loginError');
+  err.style.display = 'none';
+  if (!pass) { err.textContent = '⚠ Please enter the password.'; err.style.display = 'block'; return; }
+
+  try {
+    const res  = await fetch(`${API}/admin/login`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ password: pass })
+    });
+    const data = await res.json();
+    if (data.success) {
+      sessionStorage.setItem('cf_admin_token', data.token);
+      showApp();
+    } else {
+      err.textContent = '⚠ Incorrect password. Please try again.';
+      err.style.display = 'block';
+    }
+  } catch(e) {
+    err.textContent = '⚠ Cannot reach server. Make sure server.js is running.';
+    err.style.display = 'block';
+  }
+}
+
+function doLogout() {
+  sessionStorage.removeItem('cf_admin_token');
+  clearInterval(autoRefreshTimer);
+  clearInterval(countdownTimer);
+  document.getElementById('loginPass').value = '';
+  document.getElementById('loginError').style.display = 'none';
+  document.getElementById('loginScreen').classList.remove('hidden');
+  document.getElementById('appScreen').classList.remove('visible');
+}
+
+function showApp() {
+  document.getElementById('loginScreen').classList.add('hidden');
+  document.getElementById('appScreen').classList.add('visible');
+  const today = new Date();
+  document.getElementById('stat-today-date').textContent = today.toLocaleDateString('en-IN', {day:'numeric',month:'short'});
+  loadAll();
+  loadWaitlist();
+  loadBlackout();
+  loadNewsletter();
+  startAutoRefresh();
+}
+
+// Check if already logged in on page load
+window.addEventListener('DOMContentLoaded', async function() {
+  const token = getToken();
+  if (token) {
+    try {
+      const res  = await fetch(`${API}/admin/verify`, { headers: {'x-admin-token': token} });
+      const data = await res.json();
+      if (data.valid) { showApp(); return; }
+    } catch(e) {}
+    sessionStorage.removeItem('cf_admin_token');
+  }
+  // Show login
+  document.getElementById('loginPass').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') doLogin();
+  });
+});
+
+// ─────────────────────────────────────────
+//  AUTO REFRESH (every 30 seconds)
+// ─────────────────────────────────────────
+function startAutoRefresh() {
+  clearInterval(autoRefreshTimer);
+  clearInterval(countdownTimer);
+  countdownSecs = 30;
+  updateCountdownDisplay();
+
+  autoRefreshTimer = setInterval(function() {
+    loadAll();
+    countdownSecs = 30;
+  }, 30000);
+
+  countdownTimer = setInterval(function() {
+    countdownSecs--;
+    if (countdownSecs < 0) countdownSecs = 30;
+    updateCountdownDisplay();
+  }, 1000);
+}
+
+function updateCountdownDisplay() {
+  const el = document.getElementById('refreshCountdown');
+  if (el) el.textContent = `Auto-refresh in ${countdownSecs}s`;
+}
+
+// ─────────────────────────────────────────
+//  PANEL SWITCHING
+// ─────────────────────────────────────────
+const panelTitles = {
+  reservations: 'Reservation <span>Manager</span>',
+  waitlist:     'Waitlist <span>Queue</span>',
+  blackout:     'Blackout <span>Dates</span>',
+  newsletter:   'Newsletter <span>Subscribers</span>'
+};
+
+function showPanel(name) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  const panel = document.getElementById('panel-' + name);
+  if (panel) panel.classList.add('active');
+  document.getElementById('topbarTitle').innerHTML = panelTitles[name] || 'Admin';
+
+  // Update sidebar active state
+  document.querySelectorAll('.sb-link').forEach(l => l.classList.remove('active'));
+
+  if (name === 'waitlist')   { loadWaitlist(); }
+  if (name === 'blackout')   { loadBlackout(); }
+  if (name === 'newsletter') { loadNewsletter(); }
+}
+
+// ─────────────────────────────────────────
+//  LOAD ALL
+// ─────────────────────────────────────────
+async function loadAll() {
+  await Promise.all([loadStats(), loadReservations()]);
+  startAutoRefresh(); // reset countdown on manual refresh
+}
+
+// ─────────────────────────────────────────
+//  STATS
+// ─────────────────────────────────────────
+async function loadStats() {
+  try {
+    const res  = await fetch(`${API}/admin/stats`);
+    const data = await res.json();
+    if (!data.success) return;
+    const s = data.stats;
+    document.getElementById('stat-total').textContent    = s.total    || 0;
+    document.getElementById('stat-today').textContent    = s.today    || 0;
+    document.getElementById('stat-pending').textContent  = s.pending  || 0;
+    document.getElementById('stat-accepted').textContent = s.accepted || 0;
+    document.getElementById('stat-rejected').textContent = s.rejected || 0;
+    document.getElementById('stat-waitlist').textContent = s.waitlist || 0;
+    document.getElementById('sb-count-all').textContent      = s.total    || 0;
+    document.getElementById('sb-count-pending').textContent  = s.pending  || 0;
+    document.getElementById('sb-count-accepted').textContent = s.accepted || 0;
+    document.getElementById('sb-count-rejected').textContent = s.rejected || 0;
+    document.getElementById('sb-count-waitlist').textContent = s.waitlist || 0;
+    document.getElementById('serverStatus').textContent = 'Server Connected';
+    document.getElementById('serverStatus').style.color = 'var(--green)';
+  } catch(e) {
+    document.getElementById('serverStatus').textContent = '⚠ Server Offline';
+    document.getElementById('serverStatus').style.color = 'var(--red)';
+  }
+}
+
+// ─────────────────────────────────────────
+//  RESERVATIONS
+// ─────────────────────────────────────────
+async function loadReservations() {
+  const dateVal = document.getElementById('dateFilter').value;
+  let url = `${API}/admin/reservations?status=${currentStatus}`;
+  if (dateVal) url += `&date=${dateVal}`;
+  try {
+    const res  = await fetch(url);
+    const data = await res.json();
+    if (!data.success) { showToast('Failed to load reservations', 'error'); return; }
+    allRows = data.reservations;
+    renderTable(allRows);
+  } catch(e) {
+    renderEmpty('Cannot connect to server. Make sure <strong>server.js</strong> is running on port 5000.');
+  }
+}
+
+function renderTable(rows) {
+  const body   = document.getElementById('tableBody');
+  const search = document.getElementById('searchBox').value.toLowerCase().trim();
+  const filtered = search ? rows.filter(r =>
+    (r.first_name + ' ' + r.last_name).toLowerCase().includes(search) ||
+    (r.phone || '').includes(search) ||
+    String(r.id).includes(search) ||
+    (r.occasion || '').toLowerCase().includes(search) ||
+    (r.email || '').toLowerCase().includes(search) ||
+    (r.date || '').includes(search) ||
+    (r.status || '').toLowerCase().includes(search)
+  ) : rows;
+
+  document.getElementById('rowCount').textContent = `${filtered.length} reservation${filtered.length !== 1 ? 's' : ''}`;
+
+  if (!filtered.length) { renderEmpty('No reservations found.'); return; }
+
+  body.innerHTML = filtered.map(r => {
+    const fullName = `${r.first_name || ''} ${r.last_name || ''}`.trim();
+    const dateStr  = r.date ? new Date(r.date).toLocaleDateString('en-IN', {day:'numeric',month:'short',year:'numeric'}) : '—';
+    const isToday  = r.date && r.date.slice(0,10) === new Date().toISOString().slice(0,10);
+    const waLink   = `https://wa.me/${(r.phone||'').replace(/\D/g,'')}`;
+
+    const acceptBtn = r.status !== 'accepted' ? `<button class="btn-accept" onclick="openAccept(${r.id})">✓ Accept</button>` : '';
+    const rejectBtn = r.status !== 'rejected' ? `<button class="btn-reject" onclick="openReject(${r.id})">✗ Reject</button>` : '';
+    const deleteBtn = `<button class="btn-delete" onclick="deleteRow(${r.id})" title="Delete">🗑</button>`;
+    const waBtn     = r.phone ? `<a href="${waLink}" target="_blank"><button class="btn-wa" title="WhatsApp">💬</button></a>` : '';
+
+    return `
+      <div class="row" id="row-${r.id}">
+        <div class="row-id">#${r.id}</div>
+        <div class="row-name">
+          <strong>${escHtml(fullName)}${isToday ? ' <span style="font-size:.55rem;background:var(--gold);color:var(--dark);padding:.1rem .35rem;margin-left:.3rem">TODAY</span>' : ''}</strong>
+          <span>${escHtml(r.occasion || '—')}</span>
+          ${r.admin_note ? `<span style="color:var(--gold);font-size:.68rem;margin-top:2px;display:block">📝 ${escHtml(r.admin_note)}</span>` : ''}
+        </div>
+        <div class="row-contact">
+          <a href="tel:${escHtml(r.phone||'')}">${escHtml(r.phone||'—')}</a><br>
+          <span>${escHtml(r.email||'—')}</span>
+        </div>
+        <div class="row-date">${dateStr}</div>
+        <div class="row-time">${escHtml(r.time||'—')}</div>
+        <div class="row-guests">${escHtml(r.guests||'—')}</div>
+        <div><span class="status-badge ${r.status}">${r.status}</span></div>
+        <div class="actions">${acceptBtn}${rejectBtn}${waBtn}${deleteBtn}</div>
+      </div>`;
+  }).join('');
+}
+
+function renderEmpty(msg) {
+  document.getElementById('tableBody').innerHTML = `<div class="empty-state"><div class="e-ico">📋</div><p>${msg}</p></div>`;
+  document.getElementById('rowCount').textContent = '0 reservations';
+}
+
+// ─────────────────────────────────────────
+//  WAITLIST
+// ─────────────────────────────────────────
+async function loadWaitlist() {
+  try {
+    const res  = await fetch(`${API}/admin/waitlist`);
+    const data = await res.json();
+    if (!data.success) return;
+    renderWaitlist(data.waitlist);
+  } catch(e) {
+    document.getElementById('waitlistBody').innerHTML = '<div class="empty-state"><div class="e-ico">⚠</div><p>Cannot connect to server.</p></div>';
+  }
+}
+
+function renderWaitlist(list) {
+  const body = document.getElementById('waitlistBody');
+  const active = list.filter(w => w.status === 'waiting');
+  if (!active.length) {
+    body.innerHTML = '<div class="empty-state"><div class="e-ico">⏸</div><p>No one on the waitlist right now.</p></div>';
+    return;
+  }
+  body.innerHTML = active.map(w => {
+    const fullName = `${w.first_name || ''} ${w.last_name || ''}`.trim();
+    const dateStr  = w.date ? new Date(w.date).toLocaleDateString('en-IN', {day:'numeric',month:'short',year:'numeric'}) : '—';
+    const waLink   = `https://wa.me/${(w.phone||'').replace(/\D/g,'')}`;
+    return `
+      <div class="wl-row" id="wl-${w.id}">
+        <div class="row-id">#${w.id}</div>
+        <div class="row-name">
+          <strong>${escHtml(fullName)}</strong>
+          <span>${escHtml(w.occasion || '—')}</span>
+        </div>
+        <div class="row-contact"><a href="tel:${escHtml(w.phone||'')}">${escHtml(w.phone||'—')}</a></div>
+        <div class="row-date">${dateStr}</div>
+        <div class="row-time">${escHtml(w.time||'—')}</div>
+        <div class="row-guests">${escHtml(w.guests||'—')}</div>
+        <div class="actions">
+          <button class="btn-promote" onclick="promoteWaitlist(${w.id})">⬆ Promote</button>
+          <a href="${waLink}" target="_blank"><button class="btn-wa">💬</button></a>
+          <button class="btn-delete" onclick="deleteWaitlist(${w.id})">🗑</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+async function promoteWaitlist(id) {
+  const w = await (await fetch(`${API}/admin/waitlist`)).json();
+  const entry = (w.waitlist || []).find(x => x.id === id);
+  if (!confirm(`Promote ${entry ? (entry.first_name + ' ' + entry.last_name) : '#' + id} to reservations?`)) return;
+
+  try {
+    const res  = await fetch(`${API}/admin/waitlist/${id}/accept`, { method:'PATCH' });
+    const data = await res.json();
+    if (data.success) {
+      showToast(`✅ Guest promoted to reservation #${data.newReservationId}! Opening WhatsApp…`, 'success');
+      if (entry && entry.phone) {
+        const phone = entry.phone.replace(/\D/g, '');
+        setTimeout(() => window.open(`https://wa.me/${phone}?text=${encodeURIComponent(data.whatsappMessage)}`, '_blank'), 500);
+      }
+      loadWaitlist();
+      loadAll();
+    } else {
+      showToast('Error: ' + data.error, 'error');
+    }
+  } catch(e) {
+    showToast('Server error', 'error');
+  }
+}
+
+async function deleteWaitlist(id) {
+  if (!confirm(`Remove waitlist entry #${id}?`)) return;
+  try {
+    await fetch(`${API}/admin/waitlist/${id}`, { method:'DELETE' });
+    showToast('Waitlist entry removed.', 'info');
+    loadWaitlist();
+    loadStats();
+  } catch(e) { showToast('Server error', 'error'); }
+}
+
+
+// ─────────────────────────────────────────
+//  BLACKOUT DATES
+// ─────────────────────────────────────────
+async function loadBlackout() {
+  try {
+    const res  = await fetch(`${API}/admin/blackout`);
+    const data = await res.json();
+    if (!data.success) return;
+    renderBlacklist(data.dates);
+  } catch(e) {
+    document.getElementById('blackoutList').innerHTML = '<p style="color:var(--red);font-size:.82rem;">Cannot connect to server.</p>';
+  }
+}
+
+function renderBlacklist(dates) {
+  const el = document.getElementById('blackoutList');
+  if (!dates.length) {
+    el.innerHTML = '<p style="color:var(--muted);font-size:.82rem;">No dates are currently blocked.</p>';
+    return;
+  }
+  el.innerHTML = dates.map(d => {
+    const dateStr = d.date ? new Date(d.date).toLocaleDateString('en-IN', {weekday:'short',day:'numeric',month:'long',year:'numeric'}) : d.date;
+    return `
+      <div class="blackout-item">
+        <div>
+          <div class="blackout-date-text">🚫 ${dateStr}</div>
+          ${d.reason ? `<div class="blackout-reason-text">${escHtml(d.reason)}</div>` : ''}
+        </div>
+        <button class="btn-remove-blackout" onclick="removeBlackout(${d.id})">Remove</button>
+      </div>`;
+  }).join('');
+}
+
+async function addBlackout() {
+  const date   = document.getElementById('boDate').value;
+  const reason = document.getElementById('boReason').value.trim();
+  if (!date) { showToast('Please select a date.', 'error'); return; }
+
+  try {
+    const res  = await fetch(`${API}/admin/blackout`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ date, reason })
+    });
+    const data = await res.json();
+    if (data.success) {
+      showToast('✅ Date blocked successfully.', 'success');
+      document.getElementById('boDate').value   = '';
+      document.getElementById('boReason').value = '';
+      loadBlackout();
+    } else {
+      showToast('Error: ' + data.error, 'error');
+    }
+  } catch(e) { showToast('Server error', 'error'); }
+}
+
+async function removeBlackout(id) {
+  if (!confirm('Remove this blackout date?')) return;
+  try {
+    await fetch(`${API}/admin/blackout/${id}`, { method:'DELETE' });
+    showToast('Blackout date removed.', 'info');
+    loadBlackout();
+  } catch(e) { showToast('Server error', 'error'); }
+}
+
+// ─────────────────────────────────────────
+//  FILTER / SEARCH
+// ─────────────────────────────────────────
+function filterStatus(status, btn) {
+  currentStatus = status;
+  document.querySelectorAll('.sb-link').forEach(l => l.classList.remove('active'));
+  ['all','pending','accepted','rejected'].forEach(s => {
+    const p = document.getElementById('fp-' + s);
+    if (p) p.classList.remove('on');
+  });
+  const fp = document.getElementById('fp-' + status);
+  if (fp) fp.classList.add('on');
+  if (btn) btn.classList.add('active');
+  loadReservations();
+}
+
+function doLocalSearch() { renderTable(allRows); }
+
+function clearSearch() {
+  document.getElementById('searchBox').value   = '';
+  document.getElementById('dateFilter').value  = '';
+  currentStatus = 'all';
+  ['all','pending','accepted','rejected'].forEach(s => {
+    const p = document.getElementById('fp-' + s);
+    if (p) p.classList.remove('on');
+  });
+  const fpAll = document.getElementById('fp-all');
+  if (fpAll) fpAll.classList.add('on');
+  loadAll();
+}
+
+// ─────────────────────────────────────────
+//  ACCEPT MODAL
+// ─────────────────────────────────────────
+function openAccept(id) {
+  pendingId = id;
+  const r = allRows.find(x => x.id === id);
+  if (!r) return;
+  const fullName = `${r.first_name || ''} ${r.last_name || ''}`.trim();
+  const dateStr  = r.date ? new Date(r.date).toLocaleDateString('en-IN',{day:'numeric',month:'short'}) : r.date;
+  const waMsg    = `Hi ${r.first_name}, your table at Cafe Fazal is CONFIRMED for ${dateStr} at ${r.time} for ${r.guests}. See you soon! 🍽️`;
+
+  document.getElementById('acceptModalInfo').innerHTML = `
+    <div class="modal-info-row"><span class="lbl">Guest</span><span class="val">${escHtml(fullName)}</span></div>
+    <div class="modal-info-row"><span class="lbl">Phone</span><span class="val">${escHtml(r.phone||'—')}</span></div>
+    <div class="modal-info-row"><span class="lbl">Date</span><span class="val">${escHtml(r.date||'—')}</span></div>
+    <div class="modal-info-row"><span class="lbl">Time</span><span class="val">${escHtml(r.time||'—')}</span></div>
+    <div class="modal-info-row"><span class="lbl">Guests</span><span class="val">${escHtml(r.guests||'—')}</span></div>
+    ${r.request ? `<div class="modal-info-row"><span class="lbl">Request</span><span class="val">${escHtml(r.request)}</span></div>` : ''}
+  `;
+  document.getElementById('acceptWaText').textContent = waMsg;
+  document.getElementById('acceptNote').value = '';
+  document.getElementById('acceptModal').classList.add('open');
+}
+
+async function confirmAccept() {
+  if (!pendingId) return;
+  const note = document.getElementById('acceptNote').value;
+  try {
+    const res  = await fetch(`${API}/admin/reservations/${pendingId}/accept`, {
+      method:'PATCH', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ note })
+    });
+    const data = await res.json();
+    if (data.success) {
+      showToast(`✅ Reservation #${pendingId} accepted! Opening WhatsApp…`, 'success');
+      const r = allRows.find(x => x.id === pendingId);
+      if (r && r.phone) {
+        const phone   = r.phone.replace(/\D/g, '');
+        const dateStr = r.date ? new Date(r.date).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'}) : r.date;
+        const msg     = encodeURIComponent(`Hi ${r.first_name}, your table at Cafe Fazal is CONFIRMED for ${dateStr} at ${r.time} for ${r.guests}. See you soon! 🍽️`);
+        setTimeout(() => window.open(`https://wa.me/${phone}?text=${msg}`, '_blank'), 500);
+      }
+      closeModals(); loadAll();
+    } else { showToast('Error: ' + data.error, 'error'); }
+  } catch(e) { showToast('Server error', 'error'); }
+}
+
+// ─────────────────────────────────────────
+//  REJECT MODAL
+// ─────────────────────────────────────────
+function openReject(id) {
+  pendingId = id;
+  const r = allRows.find(x => x.id === id);
+  if (!r) return;
+  const fullName = `${r.first_name || ''} ${r.last_name || ''}`.trim();
+  const dateStr  = r.date ? new Date(r.date).toLocaleDateString('en-IN',{day:'numeric',month:'short'}) : r.date;
+  const waMsg    = `Hi ${r.first_name}, unfortunately we cannot accommodate your reservation on ${dateStr} at ${r.time}. Please call +91 9920599891 to reschedule. Sorry!`;
+
+  document.getElementById('rejectModalInfo').innerHTML = `
+    <div class="modal-info-row"><span class="lbl">Guest</span><span class="val">${escHtml(fullName)}</span></div>
+    <div class="modal-info-row"><span class="lbl">Phone</span><span class="val">${escHtml(r.phone||'—')}</span></div>
+    <div class="modal-info-row"><span class="lbl">Date</span><span class="val">${escHtml(r.date||'—')}</span></div>
+    <div class="modal-info-row"><span class="lbl">Time</span><span class="val">${escHtml(r.time||'—')}</span></div>
+    <div class="modal-info-row"><span class="lbl">Guests</span><span class="val">${escHtml(r.guests||'—')}</span></div>
+  `;
+  document.getElementById('rejectWaText').textContent = waMsg;
+  document.getElementById('rejectNote').value = '';
+  document.getElementById('rejectModal').classList.add('open');
+}
+
+async function confirmReject() {
+  if (!pendingId) return;
+  const note = document.getElementById('rejectNote').value;
+  try {
+    const res  = await fetch(`${API}/admin/reservations/${pendingId}/reject`, {
+      method:'PATCH', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ note })
+    });
+    const data = await res.json();
+    if (data.success) {
+      showToast(`❌ Reservation #${pendingId} rejected. Opening WhatsApp…`, 'info');
+      const r = allRows.find(x => x.id === pendingId);
+      if (r && r.phone) {
+        const phone   = r.phone.replace(/\D/g, '');
+        const dateStr = r.date ? new Date(r.date).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'}) : r.date;
+        const msg     = encodeURIComponent(`Hi ${r.first_name}, unfortunately we cannot accommodate your reservation on ${dateStr} at ${r.time}. Please call +91 9920599891 to reschedule. Sorry for the inconvenience!`);
+        setTimeout(() => window.open(`https://wa.me/${phone}?text=${msg}`, '_blank'), 500);
+      }
+      closeModals(); loadAll();
+    } else { showToast('Error: ' + data.error, 'error'); }
+  } catch(e) { showToast('Server error', 'error'); }
+}
+
+// ─────────────────────────────────────────
+//  DELETE
+// ─────────────────────────────────────────
+async function deleteRow(id) {
+  if (!confirm(`Delete reservation #${id}? This cannot be undone.`)) return;
+  try {
+    await fetch(`${API}/admin/reservations/${id}`, { method:'DELETE' });
+    showToast(`🗑 Reservation #${id} deleted.`, 'info');
+    loadAll();
+  } catch(e) { showToast('Delete failed', 'error'); }
+}
+
+// ─────────────────────────────────────────
+//  MODALS / TOAST / UTIL
+// ─────────────────────────────────────────
+function closeModals() {
+  document.getElementById('acceptModal').classList.remove('open');
+  document.getElementById('rejectModal').classList.remove('open');
+  pendingId = null;
+}
+
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', function(e) { if (e.target === m) closeModals(); });
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModals(); });
+
+function showToast(msg, type='info') {
+  const c = document.getElementById('toastContainer');
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.textContent = msg;
+  c.appendChild(t);
+  setTimeout(() => t.remove(), 4000);
+}
+
+function escHtml(s) {
+  if (!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ─────────────────────────────────────────
+//  NEWSLETTER
+// ─────────────────────────────────────────
+let allSubscribers = [];
+
+async function loadNewsletter() {
+  try {
+    const res  = await fetch(`${API}/admin/newsletter`);
+    const data = await res.json();
+    if (!data.success) return;
+    allSubscribers = data.subscribers;
+
+    // Stats
+    const now   = new Date();
+    const month = allSubscribers.filter(s => {
+      const d = new Date(s.subscribed_at);
+      return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+    }).length;
+    const week = allSubscribers.filter(s => {
+      const d = new Date(s.subscribed_at);
+      return (now - d) < 7 * 24 * 60 * 60 * 1000;
+    }).length;
+
+    document.getElementById('nl-stat-total').textContent = allSubscribers.length;
+    document.getElementById('nl-stat-month').textContent = month;
+    document.getElementById('nl-stat-week').textContent  = week;
+    document.getElementById('sb-count-newsletter').textContent = allSubscribers.length;
+
+    renderSubscribers();
+  } catch(e) {
+    document.getElementById('nlTableBody').innerHTML =
+      '<div class="empty-state"><div class="e-ico">⚠</div><p>Cannot connect to server.</p></div>';
+  }
+}
+
+function renderSubscribers() {
+  const body   = document.getElementById('nlTableBody');
+  const search = (document.getElementById('nlSearchBox').value || '').toLowerCase().trim();
+  const list   = search
+    ? allSubscribers.filter(s =>
+        (s.email || '').toLowerCase().includes(search) ||
+        (s.name  || '').toLowerCase().includes(search))
+    : allSubscribers;
+
+  document.getElementById('nl-row-count').textContent =
+    `${list.length} subscriber${list.length !== 1 ? 's' : ''}`;
+
+  if (!list.length) {
+    body.innerHTML = '<div class="empty-state"><div class="e-ico">📧</div><p>No subscribers found.</p></div>';
+    return;
+  }
+
+  body.innerHTML = list.map((s, i) => {
+    const dateStr = s.subscribed_at
+      ? new Date(s.subscribed_at).toLocaleDateString('en-IN', {day:'numeric', month:'short', year:'numeric'})
+      : '—';
+    return `
+      <div class="nl-row">
+        <div class="row-id">${i + 1}</div>
+        <div class="nl-name">${escHtml(s.name || '—')}</div>
+        <div class="nl-email">${escHtml(s.email)}</div>
+        <div class="nl-date">${dateStr}</div>
+        <div>
+          <button class="btn-unsub" onclick="unsubscribe(${s.id}, '${escHtml(s.email)}')">Remove</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+async function unsubscribe(id, email) {
+  if (!confirm(`Remove ${email} from the newsletter?`)) return;
+  try {
+    await fetch(`${API}/admin/newsletter/${id}`, { method: 'DELETE' });
+    showToast(`📧 ${email} removed from newsletter.`, 'info');
+    loadNewsletter();
+  } catch(e) { showToast('Server error', 'error'); }
+}
+
+function exportCSV() {
+  if (!allSubscribers.length) { showToast('No subscribers to export.', 'info'); return; }
+  const rows = [['#', 'Name', 'Email', 'Subscribed At']];
+  allSubscribers.forEach((s, i) => {
+    rows.push([
+      i + 1,
+      s.name || '',
+      s.email,
+      s.subscribed_at ? new Date(s.subscribed_at).toLocaleString('en-IN') : ''
+    ]);
+  });
+  const csv  = rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = 'cafe-fazal-subscribers.csv'; a.click();
+  URL.revokeObjectURL(url);
+  showToast('✅ CSV exported!', 'success');
+}
+
+</script>
+</body>
+</html>

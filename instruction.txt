@@ -1,0 +1,95 @@
+install node js in location D:\cafefazal\cafe-backend
+
+all the files keep on cafe-backed folder
+
+
+start server on cmd ---D:\cafefazal\cafe-backend>node server.js
+
+install postgresql and create database cafefazal
+
+edit postgres password or port detail on  server.js fire like below exmaple
+
+const pool = new Pool({
+  user: 'postgres',
+  host: 'localhost',
+  database: 'cafefazal',
+  password: 'postgres',
+  port: 5432,
+});
+
+edit admin password on server.js file like below
+
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'Fazal@2000';
+===================================
+connect with cafefazal database --command  /c cafefazal
+
+create below tables:
+
+-- ─────────────────────────────────────────
+--  CAFE FAZAL — COMPLETE DATABASE SETUP
+--  Run this ONCE in psql
+-- ─────────────────────────────────────────
+
+-- 1. RESERVATIONS
+CREATE TABLE IF NOT EXISTS reservations (
+  id           SERIAL PRIMARY KEY,
+  first_name   VARCHAR(100),
+  last_name    VARCHAR(100),
+  phone        VARCHAR(30),
+  email        VARCHAR(150),
+  date         DATE,
+  time         VARCHAR(20),
+  guests       VARCHAR(50),
+  occasion     VARCHAR(100),
+  dietary      VARCHAR(100),
+  request      TEXT,
+  status       VARCHAR(20)  DEFAULT 'pending',
+  admin_note   TEXT         DEFAULT '',
+  cancelled_at TIMESTAMP,
+  created_at   TIMESTAMP    DEFAULT NOW()
+);
+
+-- 2. WAITLIST
+CREATE TABLE IF NOT EXISTS waitlist (
+  id         SERIAL PRIMARY KEY,
+  first_name VARCHAR(100),
+  last_name  VARCHAR(100),
+  phone      VARCHAR(30),
+  email      VARCHAR(150),
+  date       DATE,
+  time       VARCHAR(20),
+  guests     VARCHAR(10),
+  occasion   VARCHAR(100),
+  dietary    VARCHAR(100),
+  request    TEXT,
+  status     VARCHAR(20)  DEFAULT 'waiting',
+  created_at TIMESTAMP    DEFAULT NOW()
+);
+
+-- 3. BLACKOUT DATES
+CREATE TABLE IF NOT EXISTS blackout_dates (
+  id         SERIAL PRIMARY KEY,
+  date       DATE         UNIQUE NOT NULL,
+  reason     TEXT         DEFAULT '',
+  created_at TIMESTAMP    DEFAULT NOW()
+);
+
+-- 4. NEWSLETTER SUBSCRIBERS
+CREATE TABLE IF NOT EXISTS newsletter_subscribers (
+  id            SERIAL PRIMARY KEY,
+  name          VARCHAR(150) DEFAULT '',
+  email         VARCHAR(200) UNIQUE NOT NULL,
+  subscribed_at TIMESTAMP    DEFAULT NOW(),
+  active        BOOLEAN      DEFAULT TRUE
+);
+
+===================
+
+open website throug link which is give on cmd not open using double click copy website link and paste in google
+
+D:\cafefazal\cafe-backend>node server.js
+
+🚀  Server   →  http://localhost:5000
+🌐  Website  →  http://localhost:5000/index.html
+📱  Status   →  http://localhost:5000/status.html
+📋  Admin    →  http://localhost:5000/admin.html
