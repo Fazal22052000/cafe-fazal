@@ -70,6 +70,8 @@ pool.query(`
 `).then(() => console.log('\u2705 Newsletter subscribers table ready'))
   .catch(err => console.error('\u26a0 Newsletter table:', err.message));
 
+
+
 // ─────────────────────────────────────────
 //  ADMIN AUTH
 //  POST /admin/login  { password }
