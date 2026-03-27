@@ -21,6 +21,11 @@ edit admin password on server.js file like below
 
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'Fazal@2000';
 ===================================
+start postgres open in cmd this location 
+C:\Program Files\PostgreSQL\17\bin
+psql -U postgres
+pasword: postgres
+
 connect with cafefazal database --command  /c cafefazal
 
 create below tables:
