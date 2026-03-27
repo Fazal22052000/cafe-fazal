@@ -12,13 +12,10 @@ app.use(express.static(path.join(__dirname)));
 app.use(cors({ origin: "*", methods: ["GET","POST","PATCH","DELETE"], allowedHeaders: ["Content-Type"] }));
 app.use(express.json());
 
-// ✅ PostgreSQL Connection
+// ✅ PostgreSQL Connection (Render)
 const pool = new Pool({
-  user: 'postgres',
-  host: 'localhost',
-  database: 'cafefazal',
-  password: 'postgres',
-  port: 5432,
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false }
 });
 
 pool.connect((err, client, release) => {
@@ -26,7 +23,28 @@ pool.connect((err, client, release) => {
   else { console.log('✅ Connected to PostgreSQL'); release(); }
 });
 
-// ✅ Add all columns + new tables on startup
+// ✅ Create all tables on startup
+pool.query(`
+  CREATE TABLE IF NOT EXISTS reservations (
+    id SERIAL PRIMARY KEY,
+    first_name VARCHAR(100),
+    last_name VARCHAR(100),
+    phone VARCHAR(30),
+    email VARCHAR(150),
+    date DATE,
+    time VARCHAR(20),
+    guests VARCHAR(10),
+    occasion VARCHAR(100),
+    dietary VARCHAR(100),
+    request TEXT,
+    status VARCHAR(20) DEFAULT 'pending',
+    admin_note TEXT DEFAULT '',
+    cancelled_at TIMESTAMP,
+    created_at TIMESTAMP DEFAULT NOW()
+  );
+`).then(() => console.log('✅ Reservations table ready'))
+  .catch(err => console.error('⚠ Reservations table:', err.message));
+
 pool.query(`
   ALTER TABLE reservations ADD COLUMN IF NOT EXISTS status VARCHAR(20) DEFAULT 'pending';
   ALTER TABLE reservations ADD COLUMN IF NOT EXISTS cancelled_at TIMESTAMP;
@@ -58,24 +76,20 @@ pool.query(`
 `).then(() => console.log('✅ Blackout dates table ready'))
   .catch(err => console.error('⚠ Blackout table:', err.message));
 
-
 pool.query(`
   CREATE TABLE IF NOT EXISTS newsletter_subscribers (
-    id         SERIAL PRIMARY KEY,
-    name       VARCHAR(150) DEFAULT '',
-    email      VARCHAR(200) UNIQUE NOT NULL,
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(150) DEFAULT '',
+    email VARCHAR(200) UNIQUE NOT NULL,
     subscribed_at TIMESTAMP DEFAULT NOW(),
-    active     BOOLEAN DEFAULT TRUE
+    active BOOLEAN DEFAULT TRUE
   );
-`).then(() => console.log('\u2705 Newsletter subscribers table ready'))
-  .catch(err => console.error('\u26a0 Newsletter table:', err.message));
-
+`).then(() => console.log('✅ Newsletter subscribers table ready'))
+  .catch(err => console.error('⚠ Newsletter table:', err.message));
 
 
 // ─────────────────────────────────────────
 //  ADMIN AUTH
-//  POST /admin/login  { password }
-//  GET  /admin/verify (header: x-admin-token)
 // ─────────────────────────────────────────
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'Fazal@2000';
 
@@ -97,13 +111,12 @@ app.get('/admin/verify', (req, res) => {
 // ─────────────────────────────────────────
 //  TEST ROUTE
 // ─────────────────────────────────────────
-app.get('/', (req, res) => {
+app.get('/health', (req, res) => {
   res.json({ message: '✅ Cafe Fazal server is running!', time: new Date() });
 });
 
 // ─────────────────────────────────────────
 //  CUSTOMER — save new reservation
-//  Checks blackout dates; sends to waitlist if blacked out
 // ─────────────────────────────────────────
 app.post('/reserve', async (req, res) => {
   try {
@@ -361,7 +374,7 @@ app.delete('/admin/blackout/:id', async (req, res) => {
   }
 });
 
-// Public endpoint for booking form to know which dates are unavailable
+// Public endpoint for booking form
 app.get('/blackout-dates', async (req, res) => {
   try {
     const result = await pool.query(`SELECT date, reason FROM blackout_dates ORDER BY date ASC;`);
@@ -381,7 +394,6 @@ app.post('/newsletter/subscribe', async (req, res) => {
       return res.status(400).json({ success: false, error: 'Invalid email.' });
     }
 
-    // Check duplicate
     const existing = await pool.query(
       `SELECT id FROM newsletter_subscribers WHERE LOWER(email) = LOWER($1) LIMIT 1;`, [email]
     );
@@ -403,8 +415,6 @@ app.post('/newsletter/subscribe', async (req, res) => {
 
 // ─────────────────────────────────────────
 //  ADMIN — newsletter subscribers
-//  GET    /admin/newsletter
-//  DELETE /admin/newsletter/:id
 // ─────────────────────────────────────────
 app.get('/admin/newsletter', async (req, res) => {
   try {
@@ -429,16 +439,12 @@ app.delete('/admin/newsletter/:id', async (req, res) => {
 });
 
 // ─────────────────────────────────────────
-//  START
+//  START SERVER
 // ─────────────────────────────────────────
-app.listen(5000, () => {
+app.listen(process.env.PORT || 5000, () => {
   console.log('');
-  console.log('🚀  Server   →  http://localhost:5000');
-  console.log('🌐  Website  →  http://localhost:5000/index.html');
-  console.log('📱  Status   →  http://localhost:5000/status.html');
-  console.log('📋  Admin    →  http://localhost:5000/admin.html');
-  console.log('');
-  console.log('🔐  Admin Password:', process.env.ADMIN_PASSWORD || 'cafefazal2024');
-  console.log('   (Set ADMIN_PASSWORD env var to change it)');
+  console.log('🚀  Server is running!');
+  console.log('🌐  Website  →  /index.html');
+  console.log('📋  Admin    →  /admin.html');
   console.log('');
 });
