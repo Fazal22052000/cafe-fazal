@@ -402,11 +402,14 @@ section { padding: 7rem 4rem; }
 #newsletter { background:var(--gold); padding:4rem; text-align:center; }
 #newsletter h3 { font-family:'Cormorant Garamond',serif; font-size:2.2rem; color:var(--dark); }
 #newsletter p  { font-size:.84rem; color:rgba(13,11,8,.6); margin:.5rem 0 1.8rem; }
-.nl-form { display:flex; max-width:460px; margin:0 auto; }
+.nl-form { display:flex; flex-direction:column; max-width:460px; margin:0 auto; gap:.6rem; }
+.nl-row  { display:flex; gap:0; }
 .nl-input  { flex:1; padding:.95rem 1.3rem; border:1px solid rgba(13,11,8,.25); background:rgba(255,255,255,.45); font-family:'Jost',sans-serif; font-size:.84rem; outline:none; color:var(--dark); }
 .nl-input::placeholder { color:rgba(13,11,8,.45); }
-.nl-btn { padding:.95rem 1.8rem; background:var(--dark); color:var(--gold); border:none; font-size:.65rem; letter-spacing:.2em; text-transform:uppercase; transition:background .3s; }
+.nl-btn { padding:.95rem 1.8rem; background:var(--dark); color:var(--gold); border:none; font-size:.65rem; letter-spacing:.2em; text-transform:uppercase; transition:background .3s; cursor:pointer; white-space:nowrap; }
 .nl-btn:hover { background:var(--dark2); }
+.nl-btn:disabled { opacity:.6; cursor:not-allowed; }
+.nl-msg { font-size:.78rem; color:var(--dark); margin-top:.4rem; min-height:1.2em; font-weight:500; }
 
 /* ── CONTACT ── */
 #contact { background:var(--dark); }
@@ -591,6 +594,7 @@ footer { background:var(--dark2); border-top:1px solid rgba(201,169,110,.1); pad
   #newsletter { padding:3rem 1.2rem; }
   #newsletter h3 { font-size:1.8rem; }
   .nl-form { flex-direction:column; gap:.5rem; }
+  .nl-row  { flex-direction:column; gap:.5rem; }
   .nl-input, .nl-btn { width:100%; }
 
   /* ── CONTACT ── */
@@ -1052,7 +1056,7 @@ footer { background:var(--dark2); border-top:1px solid rgba(201,169,110,.1); pad
 <section id="events">
   <div class="ev-head reveal">
     <span class="sec-label">Special Occasions</span>
-    <h2 class="sec-title">Events</h2>
+    <h2 class="sec-title">Upcoming Events</h2>
     <div class="gold-bar center"></div>
   </div>
   <div class="ev-grid">
@@ -1096,9 +1100,13 @@ footer { background:var(--dark2); border-top:1px solid rgba(201,169,110,.1); pad
   <h3>Stay in the Loop</h3>
   <p>Get updates on new dishes, seasonal specials, Iftar menus and exclusive offers</p>
   <div class="nl-form">
-    <input class="nl-input" type="email" id="nlEmail" placeholder="Your email address" autocomplete="email">
-    <button class="nl-btn" onclick="nlSubmit()">Subscribe</button>
+    <input class="nl-input" type="text" id="nlName" placeholder="Your name" autocomplete="name" required>
+    <div class="nl-row">
+      <input class="nl-input" type="email" id="nlEmail" placeholder="Your email address" autocomplete="email">
+      <button class="nl-btn" id="nlBtn" onclick="nlSubmit()">Subscribe</button>
+    </div>
   </div>
+  <div class="nl-msg" id="nlMsg"></div>
 </div>
 
 <!-- ═══ CONTACT ═══ -->
@@ -1443,14 +1451,58 @@ async function submitForm(e) {
 }
 
 /* ── 14. NEWSLETTER ── */
-function nlSubmit() {
-  var el = document.getElementById('nlEmail');
-  var v  = el.value.trim();
-  if (v && v.includes('@') && v.includes('.')) {
-    el.value = ''; el.placeholder = '\u2713 Thank you for subscribing!';
-    setTimeout(function() { el.placeholder = 'Your email address'; }, 4000);
-  } else {
-    el.placeholder = 'Please enter a valid email address'; el.focus();
+async function nlSubmit() {
+  var el  = document.getElementById('nlEmail');
+  var btn = document.getElementById('nlBtn');
+  var msg = document.getElementById('nlMsg');
+  var v       = el.value.trim();
+  var nameEl  = document.getElementById('nlName');
+  var nameVal = nameEl ? nameEl.value.trim() : '';
+
+  msg.textContent = '';
+
+  if (!nameVal) {
+    msg.textContent = '⚠ Please enter your name.';
+    nameEl.focus();
+    return;
+  }
+  if (!v || !v.includes('@') || !v.includes('.')) {
+    msg.textContent = '⚠ Please enter a valid email address.';
+    el.focus();
+    return;
+  }
+
+  btn.textContent = '...';
+  btn.disabled = true;
+
+  try {
+    var API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+      ? 'http://' + window.location.hostname + ':5000'
+      : 'http://' + window.location.hostname + ':5000';
+
+    var res  = await fetch(API_URL + '/newsletter/subscribe', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ name: nameVal, email: v })
+    });
+    var data = await res.json();
+
+    if (data.duplicate) {
+      msg.textContent = '✓ You are already subscribed — thank you!';
+      el.value = ''; if(nameEl) nameEl.value = '';
+    } else if (data.success) {
+      msg.textContent = '✓ Subscribed! Thank you for joining us.';
+      el.value = ''; if(nameEl) nameEl.value = '';
+    } else {
+      msg.textContent = '✗ Something went wrong. Please try again.';
+    }
+  } catch (err) {
+    msg.textContent = '✗ Could not connect to server. Please try again later.';
+    console.error('Newsletter error:', err);
+  } finally {
+    btn.textContent = 'Subscribe';
+    btn.disabled = false;
+    setTimeout(function() { msg.textContent = ''; }, 6000);
   }
 }
 
