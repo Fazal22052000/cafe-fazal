@@ -385,7 +385,7 @@ body{background:var(--dark);color:var(--cream);font-family:'DM Sans',sans-serif;
       <a class="sb-link" href="https://wa.me/919920599891" target="_blank"><span class="ico">💬</span> WhatsApp</a>
     </nav>
     <div class="sb-footer">
-      Connected to <span style="color:var(--gold)">localhost:5000</span><br>
+      Connected to <span style="color:var(--gold)">https://cafe-fazal.onrender.com</span><br>
       <a href="#" onclick="doLogout()">🔓 Logout</a>
     </div>
   </aside>
@@ -602,9 +602,7 @@ body{background:var(--dark);color:var(--cream);font-family:'DM Sans',sans-serif;
 <script>
 "use strict";
 
-const API = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
-  ? 'http://localhost:5000'
-  : '';
+const API = window.location.hostname === 'localhost' ? 'http://localhost:5000' : 'https://cafe-fazal.onrender.com';
 let allRows      = [];
 let currentStatus = 'all';
 let pendingId    = null;
@@ -781,7 +779,7 @@ async function loadReservations() {
     allRows = data.reservations;
     renderTable(allRows);
   } catch(e) {
-    renderEmpty('Cannot connect to server. Make sure <strong>server.js</strong> is running on port 5000.');
+    renderEmpty('Cannot connect to server. Please try again.');
   }
 }
 
