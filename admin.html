@@ -806,8 +806,9 @@ function renderTable(rows) {
     const isToday  = r.date && r.date.slice(0,10) === new Date().toISOString().slice(0,10);
     const waLink   = `https://wa.me/${(r.phone||'').replace(/\D/g,'')}`;
 
-    const acceptBtn = r.status !== 'accepted' ? `<button class="btn-accept" onclick="openAccept(${r.id})">✓ Accept</button>` : '';
-    const rejectBtn = r.status !== 'rejected' ? `<button class="btn-reject" onclick="openReject(${r.id})">✗ Reject</button>` : '';
+    const isClosed  = r.status === 'cancelled' || r.status === 'accepted' || r.status === 'rejected';
+    const acceptBtn = (!isClosed && r.status !== 'accepted') ? `<button class="btn-accept" onclick="openAccept(${r.id})">✓ Accept</button>` : '';
+    const rejectBtn = (!isClosed && r.status !== 'rejected') ? `<button class="btn-reject" onclick="openReject(${r.id})">✗ Reject</button>` : '';
     const deleteBtn = `<button class="btn-delete" onclick="deleteRow(${r.id})" title="Delete">🗑</button>`;
     const waBtn     = r.phone ? `<a href="${waLink}" target="_blank"><button class="btn-wa" title="WhatsApp">💬</button></a>` : '';
 
@@ -818,6 +819,7 @@ function renderTable(rows) {
           <strong>${escHtml(fullName)}${isToday ? ' <span style="font-size:.55rem;background:var(--gold);color:var(--dark);padding:.1rem .35rem;margin-left:.3rem">TODAY</span>' : ''}</strong>
           <span>${escHtml(r.occasion || '—')}</span>
           ${r.admin_note ? `<span style="color:var(--gold);font-size:.68rem;margin-top:2px;display:block">📝 ${escHtml(r.admin_note)}</span>` : ''}
+          ${r.status === 'cancelled' ? `<span style="color:#94a3b8;font-size:.65rem;margin-top:2px;display:block">🚫 Cancelled by customer</span>` : ''}
         </div>
         <div class="row-contact">
           <a href="tel:${escHtml(r.phone||'')}">${escHtml(r.phone||'—')}</a><br>
