@@ -496,6 +496,100 @@ footer { background:var(--dark2); border-top:1px solid rgba(201,169,110,.1); pad
 .ft-legal a:hover { color:var(--gold); }
 .ft-credit { font-size:.62rem; color:rgba(201,169,110,.35); }
 
+/* ── PHONE FIELD WITH COUNTRY CODE ── */
+.phone-wrap {
+  display: flex;
+  align-items: stretch;
+  border: 1px solid rgba(201,169,110,.25);
+  background: rgba(255,255,255,.03);
+}
+.phone-wrap:focus-within {
+  border-color: var(--gold);
+}
+.phone-code {
+  display: flex;
+  align-items: center;
+  padding: 0 .85rem;
+  background: rgba(201,169,110,.08);
+  border-right: 1px solid rgba(201,169,110,.2);
+  font-size: .82rem;
+  color: var(--gold);
+  white-space: nowrap;
+  letter-spacing: .04em;
+  user-select: none;
+}
+.phone-wrap input {
+  flex: 1;
+  border: none !important;
+  background: transparent !important;
+  outline: none;
+  padding: .88rem 1rem;
+  font-family: 'Jost', sans-serif;
+  font-size: .88rem;
+  color: var(--cream);
+  letter-spacing: .06em;
+}
+.phone-wrap input::placeholder { color: var(--muted); }
+
+/* Phone error popup */
+.phone-error-popup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(.85);
+  z-index: 9000;
+  background: var(--dark2);
+  border: 1px solid rgba(201,169,110,.35);
+  padding: 2rem 2.2rem 1.8rem;
+  text-align: center;
+  max-width: 340px;
+  width: 90%;
+  box-shadow: 0 20px 60px rgba(0,0,0,.7);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .25s ease, transform .25s ease;
+}
+.phone-error-popup.show {
+  opacity: 1;
+  pointer-events: all;
+  transform: translate(-50%, -50%) scale(1);
+}
+.pep-icon { font-size: 2rem; margin-bottom: .6rem; }
+.pep-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.4rem;
+  color: var(--gold);
+  margin-bottom: .5rem;
+}
+.pep-msg {
+  font-size: .8rem;
+  color: var(--muted);
+  line-height: 1.7;
+  margin-bottom: 1.4rem;
+}
+.pep-close {
+  background: var(--gold);
+  color: var(--dark);
+  border: none;
+  padding: .65rem 2rem;
+  font-family: 'Jost', sans-serif;
+  font-size: .7rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background .3s;
+}
+.pep-close:hover { background: var(--gold-lt); }
+.pep-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 8999;
+  background: rgba(0,0,0,.6);
+  backdrop-filter: blur(4px);
+}
+.pep-overlay.show { display: block; }
+
 /* ── RESPONSIVE ── */
 @media (max-width:1100px) {
   .about-wrap, .res-wrap { grid-template-columns:1fr; gap:3rem; }
@@ -910,6 +1004,15 @@ footer { background:var(--dark2); border-top:1px solid rgba(201,169,110,.1); pad
   </div>
 </div>
 
+<!-- ═══ PHONE ERROR POPUP ═══ -->
+<div class="pep-overlay" id="pepOverlay" onclick="closePepPopup()"></div>
+<div class="phone-error-popup" id="pepPopup" role="alertdialog" aria-modal="true" aria-labelledby="pepTitle">
+  <div class="pep-icon">📵</div>
+  <div class="pep-title" id="pepTitle">Invalid Phone Number</div>
+  <div class="pep-msg" id="pepMsg">Please enter a valid 10-digit mobile number.<br>Do not include the country code (+91).</div>
+  <button class="pep-close" onclick="closePepPopup()">OK, Got It</button>
+</div>
+
 <!-- ═══ LIGHTBOX ═══ -->
 <div id="lightbox" role="dialog" aria-modal="true" aria-label="Image viewer">
   <button class="lb-close" onclick="closeLB()" aria-label="Close">&#10005;</button>
@@ -982,7 +1085,13 @@ footer { background:var(--dark2); border-top:1px solid rgba(201,169,110,.1); pad
           <div class="f-group"><label class="f-label">Last Name</label><input type="text" placeholder="Last name"></div>
         </div>
         <div class="f-row">
-          <div class="f-group"><label class="f-label">Phone *</label><input type="tel" placeholder="+91 98000 00000" required></div>
+          <div class="f-group">
+            <label class="f-label">Phone *</label>
+            <div class="phone-wrap">
+              <span class="phone-code">🇮🇳 +91</span>
+              <input type="tel" id="resPhone" placeholder="98000 00000" maxlength="10" required oninput="this.value=this.value.replace(/\D/g,'').slice(0,10)">
+            </div>
+          </div>
           <div class="f-group"><label class="f-label">Email</label><input type="email" placeholder="you@email.com"></div>
         </div>
         <div class="f-row">
@@ -1424,10 +1533,24 @@ if (resDate) { resDate.min = new Date().toISOString().split('T')[0]; }
 async function submitForm(e) {
   e.preventDefault();
   const form = document.getElementById('resForm');
+
+  // ── Phone validation ──
+  const phoneVal = document.getElementById('resPhone').value.replace(/\D/g, '');
+  if (phoneVal.length !== 10) {
+    showPepPopup(
+      phoneVal.length < 10 ? 'Number Too Short' : 'Number Too Long',
+      phoneVal.length < 10
+        ? 'A valid Indian mobile number must have exactly 10 digits. You entered ' + phoneVal.length + '.'
+        : 'A valid Indian mobile number must have exactly 10 digits. Please remove extra digits.'
+    );
+    document.getElementById('resPhone').focus();
+    return;
+  }
+
   const data = {
     firstName: form.querySelectorAll('input')[0].value,
     lastName:  form.querySelectorAll('input')[1].value,
-    phone:     form.querySelectorAll('input')[2].value,
+    phone:     '+91' + phoneVal,
     email:     form.querySelectorAll('input')[3].value,
     date:      document.getElementById('resDate').value,
     time:      form.querySelectorAll('select')[0].value,
@@ -1502,6 +1625,20 @@ async function nlSubmit() {
     btn.disabled = false;
     setTimeout(function() { msg.textContent = ''; }, 6000);
   }
+}
+
+/* ── PHONE ERROR POPUP HELPERS ── */
+function showPepPopup(title, msg) {
+  document.getElementById('pepTitle').textContent = title || 'Invalid Phone Number';
+  document.getElementById('pepMsg').innerHTML   = msg   || 'Please enter a valid 10-digit mobile number.';
+  document.getElementById('pepOverlay').classList.add('show');
+  document.getElementById('pepPopup').classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+function closePepPopup() {
+  document.getElementById('pepOverlay').classList.remove('show');
+  document.getElementById('pepPopup').classList.remove('show');
+  document.body.style.overflow = '';
 }
 
 /* ── 15. MODAL ── */
