@@ -98,3 +98,79 @@ D:\cafefazal\cafe-backend>node server.js
 🌐  Website  →  http://localhost:5000/index.html
 📱  Status   →  http://localhost:5000/status.html
 📋  Admin    →  http://localhost:5000/admin.html
+
+
+
+
+
+
+=========================================================deploy database on render steps======================================================================
+
+
+## 🐙 STEP 1: Upload to GitHub
+
+1. Go to **github.com** → Login
+2. Click **+** (top right) → **New repository**
+3. Name: `cafe-fazal`
+4. Select **Public**
+5. ✅ Check **Add a README file**
+6. Click **Create repository**
+7. Click **Add file** → **Upload files**
+8. Drag and drop these files only:
+   - `server.js`
+   - `index.html`
+   - `admin.html`
+   - `status.html`
+   - `package.json`
+   - ⚠️ Do NOT upload `node_modules` folder
+9. Click **Commit changes** ✅
+
+---
+
+## 🗄️ STEP 2: Create Free Database on Render
+
+1. Go to **render.com**
+2. Click **Sign up** → **Continue with GitHub** (easiest)
+3. After login, click **New +** → **PostgreSQL**
+4. Fill in:
+   - Name: `cafefazal-db`
+   - Region: **Singapore** (closest to Mumbai)
+   - Plan: **Free**
+5. Click **Create Database**
+6. Wait 1-2 minutes ⏳
+7. You will see a page with database details
+8. Find **Internal Database URL** → Click **Copy** 📋
+9. Save this URL somewhere — we need it in next step
+
+---
+
+## 🌐 STEP 3: Deploy Website on Render
+
+1. On Render, click **New +** → **Web Service**
+2. Click **Connect a repository**
+3. Select your `cafe-fazal` GitHub repo
+4. Fill in:
+   - Name: `cafe-fazal`
+   - Region: **Singapore**
+   - Branch: `main`
+   - Build Command: `npm install`
+   - Start Command: `node server.js`
+   - Plan: **Free**
+5. Scroll down to **Environment Variables**
+6. Click **Add Environment Variable**
+   - Key: `DATABASE_URL`
+   - Value: paste the URL you copied in Step 4
+7. Click **Add Environment Variable** again
+   - Key: `ADMIN_PASSWORD`
+   - Value: `Fazal@2000`
+8. Click **Create Web Service**
+9. Wait 3-5 minutes while it deploys ⏳
+10. You will see **Live** in green ✅
+
+---
+
+## 🔗 STEP 4: Get Your Website Link
+
+After deploy, Render gives you a link like:
+```
+https://cafe-fazal.onrender.com
